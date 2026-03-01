@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createRouteClient } from '@/lib/supabase-server';
 import { predictWaste } from '@/lib/gemini';
 
+export const runtime = 'nodejs';
+
 // GET /api/predict — AI waste prediction for the authenticated restaurant
 export async function GET() {
   const supabase = createRouteClient();
@@ -44,7 +46,12 @@ export async function GET() {
 
     return NextResponse.json(result);
   } catch (err) {
-    console.error('Gemini prediction error:', err);
-    return NextResponse.json({ error: 'AI prediction failed' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'AI prediction failed';
+    const isConfigError = message.includes('GEMINI_API_KEY');
+    console.error('Gemini prediction error:', message);
+    return NextResponse.json(
+      { error: isConfigError ? 'AI is not configured (missing GEMINI_API_KEY).' : message },
+      { status: isConfigError ? 503 : 500 }
+    );
   }
 }

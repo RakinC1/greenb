@@ -1,17 +1,30 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { GeminiPredictionResult, PhotoAnalysisResult } from '@/types';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+function getGeminiClient() {
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error('Missing GEMINI_API_KEY environment variable');
+  }
+  return new GoogleGenerativeAI(apiKey);
+}
 
-// gemini-1.5-flash: fast, cheap, 1M tokens/day free
-export const geminiFlash = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash',
-  generationConfig: {
-    responseMimeType: 'application/json',
-    temperature: 0.2,
-    maxOutputTokens: 2048,
-  },
-});
+function parseGeminiJson<T>(rawText: string, context: string): T {
+  const withoutFenceStart = rawText.trim().replace(/^```(?:json)?\s*/i, '');
+  const withoutFences = withoutFenceStart.replace(/\s*```$/, '').trim();
+  const firstBrace = withoutFences.indexOf('{');
+  const lastBrace = withoutFences.lastIndexOf('}');
+  const candidate = firstBrace >= 0 && lastBrace > firstBrace
+    ? withoutFences.slice(firstBrace, lastBrace + 1)
+    : withoutFences;
+
+  try {
+    return JSON.parse(candidate) as T;
+  } catch (error) {
+    console.error(`Gemini JSON parse error (${context}):`, error);
+    throw new Error(`Invalid JSON returned by AI (${context})`);
+  }
+}
 
 // ─── Waste Prediction ─────────────────────────────────────────────────────────
 
@@ -25,6 +38,14 @@ export async function predictWaste(
     status: string;
   }>
 ): Promise<GeminiPredictionResult> {
+  const model = getGeminiClient().getGenerativeModel({
+    model: 'gemini-1.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+      maxOutputTokens: 2048,
+    },
+  });
   const tomorrow = new Date(Date.now() + 86_400_000);
 
   const prompt = `
@@ -63,9 +84,9 @@ Today: ${new Date().toDateString()}
 Tomorrow (predict for): ${tomorrow.toDateString()} (${tomorrow.toLocaleDateString('en-US', { weekday: 'long' })})
 `;
 
-  const result = await geminiFlash.generateContent(prompt);
+  const result = await model.generateContent(prompt);
   const text = result.response.text();
-  return JSON.parse(text) as GeminiPredictionResult;
+  return parseGeminiJson<GeminiPredictionResult>(text, 'waste_prediction');
 }
 
 // ─── Photo Analysis ───────────────────────────────────────────────────────────
@@ -74,6 +95,7 @@ export async function analyzeFoodPhoto(
   base64Image: string,
   mimeType: string
 ): Promise<PhotoAnalysisResult> {
+  const genAI = getGeminiClient();
   // Vision model (same flash, it supports images natively)
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
@@ -98,7 +120,7 @@ export async function analyzeFoodPhoto(
   ]);
 
   const text = result.response.text();
-  return JSON.parse(text) as PhotoAnalysisResult;
+  return parseGeminiJson<PhotoAnalysisResult>(text, 'photo_analysis');
 }
 
 // ─── Impact Summary ───────────────────────────────────────────────────────────
@@ -109,6 +131,7 @@ export async function generateImpactInsight(stats: {
   total_water: number;
   active_restaurants: number;
 }): Promise<string> {
+  const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
     generationConfig: { temperature: 0.7, maxOutputTokens: 150 },

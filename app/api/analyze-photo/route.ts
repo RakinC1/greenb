@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeFoodPhoto } from '@/lib/gemini';
 
+export const runtime = 'nodejs';
+
 // POST /api/analyze-photo — Gemini vision: identify food from image
 export async function POST(req: NextRequest) {
   const { base64, mimeType } = await req.json();
@@ -18,7 +20,12 @@ export async function POST(req: NextRequest) {
     const result = await analyzeFoodPhoto(base64, mimeType);
     return NextResponse.json(result);
   } catch (err) {
-    console.error('Gemini vision error:', err);
-    return NextResponse.json({ error: 'Photo analysis failed' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Photo analysis failed';
+    const isConfigError = message.includes('GEMINI_API_KEY');
+    console.error('Gemini vision error:', message);
+    return NextResponse.json(
+      { error: isConfigError ? 'AI is not configured (missing GEMINI_API_KEY).' : message },
+      { status: isConfigError ? 503 : 500 }
+    );
   }
 }
