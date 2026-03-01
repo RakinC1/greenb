@@ -23,14 +23,14 @@ export function PredictionWidget() {
   return (
     <div className="bg-gradient-to-br from-forest to-moss rounded-2xl p-5 text-white relative overflow-hidden">
       {/* Glow */}
-      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-radial from-fern/30 to-transparent pointer-events-none" />
+      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[radial-gradient(circle,_rgba(106,171,122,0.3)_0%,_rgba(106,171,122,0)_70%)] pointer-events-none" />
 
       <div className="flex items-center gap-2 mb-3">
         <span className="w-2 h-2 rounded-full bg-fern animate-pulse" />
         <span className="text-[10px] text-mint tracking-widest uppercase font-medium">AI Prediction Engine</span>
       </div>
 
-      <h3 className="font-fraunces text-[17px] font-medium mb-3">Tomorrow's Waste Forecast</h3>
+      <h3 className="font-fraunces text-[17px] font-medium mb-3">Tomorrow&apos;s Waste Forecast</h3>
 
       {loading && (
         <div className="space-y-3">

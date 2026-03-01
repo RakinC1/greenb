@@ -37,7 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               bg-forest text-white px-4 py-3 rounded-xl
               flex items-center gap-2 text-sm shadow-xl
               border-l-[3px] ${borders[t.type]}
-              animate-in slide-in-from-bottom-2 duration-300
+              toast-enter
             `}
           >
             <span>{icons[t.type]}</span>

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from '@/lib/mapbox';
 
 interface MapListing {
@@ -19,13 +19,19 @@ interface MapViewProps {
 export function MapView({ listings, onListingClick, height = 400 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<any>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || typeof window === 'undefined') return;
 
     // Dynamically import mapbox-gl to avoid SSR issues
     import('mapbox-gl').then(({ default: mapboxgl }) => {
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+      const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+      if (!token) {
+        setConfigError('Map unavailable: missing NEXT_PUBLIC_MAPBOX_TOKEN.');
+        return;
+      }
+      mapboxgl.accessToken = token;
 
       if (mapRef.current) return; // already initialized
 
@@ -94,12 +100,25 @@ export function MapView({ listings, onListingClick, height = 400 }: MapViewProps
           });
         }
       });
+    }).catch(() => {
+      setConfigError('Map failed to load.');
     });
 
     return () => {
       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
     };
   }, []);
+
+  if (configError) {
+    return (
+      <div
+        style={{ width: '100%', height }}
+        className="rounded-2xl bg-cream border border-forest/10 text-muted text-sm flex items-center justify-center px-4 text-center"
+      >
+        {configError}
+      </div>
+    );
+  }
 
   return (
     <div

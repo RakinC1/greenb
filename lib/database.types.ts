@@ -1,9 +1,8 @@
-// Minimal database type definitions matching our Supabase schema
-// In production: run `npx supabase gen types typescript` to auto-generate
-
+// Generated-style Supabase types matching supabase/schema.sql.
+// Keep this aligned with schema changes to preserve strong typing.
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
@@ -15,6 +14,7 @@ export interface Database {
           lat: number | null;
           lng: number | null;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id: string;
@@ -24,6 +24,7 @@ export interface Database {
           lat?: number | null;
           lng?: number | null;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -33,7 +34,9 @@ export interface Database {
           lat?: number | null;
           lng?: number | null;
           created_at?: string;
+          updated_at?: string;
         };
+        Relationships: [];
       };
       listings: {
         Row: {
@@ -51,7 +54,9 @@ export interface Database {
           lng: number | null;
           co2_saved: number;
           water_saved: number;
+          notes: string | null;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -60,7 +65,7 @@ export interface Database {
           category: string;
           quantity: number;
           unit: string;
-          dietary_tags: string[];
+          dietary_tags?: string[];
           photo_url?: string | null;
           expires_at: string;
           status?: 'available' | 'claimed' | 'expired';
@@ -68,7 +73,9 @@ export interface Database {
           lng?: number | null;
           co2_saved?: number;
           water_saved?: number;
+          notes?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -85,8 +92,19 @@ export interface Database {
           lng?: number | null;
           co2_saved?: number;
           water_saved?: number;
+          notes?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'listings_restaurant_id_fkey';
+            columns: ['restaurant_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       claims: {
         Row: {
@@ -113,6 +131,22 @@ export interface Database {
           pickup_confirmed?: boolean;
           notes?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'claims_listing_id_fkey';
+            columns: ['listing_id'];
+            isOneToOne: false;
+            referencedRelation: 'listings';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'claims_shelter_id_fkey';
+            columns: ['shelter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       predictions: {
         Row: {
@@ -145,11 +179,38 @@ export interface Database {
           for_date?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'predictions_restaurant_id_fkey';
+            columns: ['restaurant_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: {
+      platform_stats: {
+        Row: {
+          total_rescues: number | null;
+          total_co2_saved: number | null;
+          total_water_saved: number | null;
+          total_quantity: number | null;
+          active_restaurants: number | null;
+          active_shelters: number | null;
+        };
+        Relationships: [];
+      };
+    };
+    Functions: {
+      update_updated_at: {
+        Args: Record<PropertyKey, never>;
+        Returns: unknown;
+      };
+    };
     Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
-}
+};
 
