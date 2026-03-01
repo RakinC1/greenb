@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap');
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --forest:  #1a2e1a;
+    --moss:    #2d4a2d;
+    --sage:    #4a7c59;
+    --fern:    #6aab7a;
+    --mint:    #a8d5b5;
+    --cream:   #f5f0e8;
+    --amber:   #e8a835;
+    --amber-light: #f5c96a;
+    --rust:    #c4622d;
+    --sky:     #7bbfcf;
+    --muted:   #5a7060;
+  }
+
+  html { font-family: 'DM Sans', sans-serif; }
+  body { background-color: var(--cream); color: var(--forest); }
+
+  ::-webkit-scrollbar       { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(26,46,26,0.15); border-radius: 99px; }
+}
+
+@layer utilities {
+  .font-fraunces { font-family: 'Fraunces', serif; }
+}
+
+/* Mapbox popup styles */
+.mapboxgl-popup-content {
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 4px 20px rgba(26,46,26,0.2) !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
